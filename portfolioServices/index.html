@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>I have a back bone</title>
+</head>
+<body>
+
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/underscore.js/1.1.4/underscore-min.js"></script>
+<script type="text/javascript" src="http://ajax.cdnjs.com/ajax/libs/backbone.js/0.3.3/backbone-min.js"></script>
+<script type="text/javascript" src="XMLObjectifier.js"></script>
+
+<input id="stockSymbolTxt" type=text size=23 value="msft"/><input id="queryStockBtn" type=button value="submit"  />
+
+<ul id="msg">
+</ul>
+
+<ul id="stockQuote">
+</ul>
+
+
+<script language=javascript type="text/javascript">
+
+    
+    function QueryStockInfo(symbol, stock, stockView) {
+        alert('symbol search for:' + symbol);
+        $.ajax({
+            type: "GET",
+            url: "/stock/" + symbol,
+            dataType: "json",
+            success: function (data, textStatus) {
+                stock.symbol = data.symbol;
+                alert('success...[' + data.price + ']' + stock.symbol);
+                stockView.render();
+                $("#stockQuote").html(stockView.el);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                console.log(arguments)
+                alert('failed....' + xhr.responseText);
+            }
+        });
+    }   
+
+    
+  $("#msg").ajaxError(function (event, request, settings) {
+      $(this).append("<li>Error requesting page " + settings.url + "</li>");
+      $(this).append("<li>Error requesting page " + event.toString + "</li>");
+  });
+
+  var Stock = Backbone.Model.extend({});
+  var stock = new Stock({ "id": 1, "symbol": "GOOG", "price": 596.97, "priceChange": -14.05, "priceChangePercentage": -2.3 });
+
+  var StockView = Backbone.View.extend({
+
+      initialize: function () {
+          this.model.bind('change', this.render, this);          
+      },
+
+      render: function () {
+          //var html = '<h3>id:' + this.model.id + ' symbol:' + this.model.symbol + ' price:' + this.model.price + '</h3>';
+          var html = '<h3>symbol:' + this.model.get('symbol') + '</h3>';
+          $(this.el).html(html);
+          return this;
+      }
+  });
+  var stockView = new StockView({ model: stock});
+  stockView.render();
+  $("#stockQuote").html(stockView.el);
+  
+  $("#queryStockBtn").click(function() {
+      QueryStockInfo($("#stockSymbolTxt").val(), stock, stockView);
+  })
+
+    
+</script>
+
+
+
+
+
+
+</body>
+</html>
