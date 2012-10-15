@@ -5,23 +5,47 @@ using System.Net;
 using Nancy;
 using System.Runtime.Serialization.Json;
 using Newtonsoft.Json;
+using portfolioServices.db;
+using portfolioServices.DomainObjects;
 
 
 namespace portfolioServices
 {
     public class MainModule : NancyModule 
     {
-        public MainModule() {
-            Stock stock = GetStockQuote("goog");
+        public MainModule()
+        {
+            Get["/user/{id}/stocks"] = parameters =>
+            {
+                var token = parameters.token;
+                var id = parameters.id;
+                User user = (new UserDal()).GetUser<User>(parameters.id);
+                return Response.AsJson(user.stockHistory);
+            };
+
+            Get["/user/{id}/token/{token}"] = parameters =>
+            {
+                var token = parameters.token;
+                var id = parameters.id;
+                User user = (new UserDal()).GetUser<User>(parameters.id);
+                return Response.AsJson(user);
+            };            
+
             Get["/stock/{symbol}"] = parameters =>
             {
-                stock = GetStockQuote(parameters.symbol);
-                return Response.AsJson(stock); //JsonConvert.SerializeObject(GetStockQuote(parameters.symbol));
+                Stock stock = GetStockQuote(parameters.symbol);
+                return Response.AsJson(stock);
+            };
+
+            Get["/*"] = parameters =>
+            {
+                return "crap";
             };
         }
 
         private Stock GetStockQuote(string stockSymbol)
         {
+            
             GoogleStock googleStock = new GoogleStock();
             List<GoogleStock> stockArray = new List<GoogleStock>();
             string url = "http://www.google.com/finance/info?infotype=infoquoteall&q=" + stockSymbol;
